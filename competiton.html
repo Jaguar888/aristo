@@ -1,0 +1,46 @@
+<!-- competition.html (Cipher Competition) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aristocrat Cipher Challenge</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Aristocrat Cipher Challenge</h1>
+        </header>
+
+        <section id="cipher-section">
+            <h2>Cipher:</h2>
+            <p id="cipher-text">Loading cipher...</p>
+        </section>
+
+        <section id="input-section">
+            <h2>Guess the letters:</h2>
+            <div id="input-fields">
+                <!-- Textboxes will be dynamically created here -->
+            </div>
+        </section>
+
+        <section id="answer-section">
+            <button onclick="submitAnswer()">Submit Answer</button>
+        </section>
+
+        <section id="timer-section">
+            <h2>Time Remaining: <span id="timer">60</span> seconds</h2>
+        </section>
+
+        <section id="result-section" style="display:none;">
+            <h2>Results</h2>
+            <p id="result-message"></p>
+            <h3>Correct Solution:</h3>
+            <p id="solution-message"></p>
+        </section>
+    </div>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
