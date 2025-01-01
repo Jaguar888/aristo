@@ -1,29 +1,231 @@
-<!-- index.html (Home Interface) -->
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aristocrat Cipher Competition</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Aristocrat Cipher Challenge - Multiplayer</title>
+    <!-- Include Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-database.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        header h1 {
+            text-align: center;
+            color: #333;
+        }
+        section {
+            margin: 20px 0;
+        }
+        h2 {
+            color: #333;
+        }
+        #input-fields {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+        }
+        .input-letter-container {
+            text-align: center;
+        }
+        input {
+            width: 40px;
+            padding: 5px;
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result-section {
+            text-align: center;
+        }
+        #start-section {
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Welcome to the Aristocrat Cipher Challenge</h1>
+            <h1>Aristocrat Cipher Challenge</h1>
         </header>
         
         <section id="start-section">
-            <p>Click below to start the competition:</p>
             <button onclick="startCompetition()">Start Competition</button>
+        </section>
+
+        <section id="cipher-section" style="display:none;">
+            <h2>Cipher:</h2>
+            <p id="cipher-text">Loading cipher...</p>
+        </section>
+
+        <section id="input-section" style="display:none;">
+            <h2>Guess the letters:</h2>
+            <div id="input-fields">
+                <!-- Textboxes will be dynamically created here -->
+            </div>
+        </section>
+
+        <section id="answer-section" style="display:none;">
+            <button onclick="submitAnswer()">Submit Answer</button>
+        </section>
+
+        <section id="result-section" style="display:none;">
+            <h2>Results</h2>
+            <p id="result-message"></p>
+            <h3>Correct Solution:</h3>
+            <p id="solution-message"></p>
         </section>
     </div>
 
     <script>
+        // Firebase config
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "firebase/app";
+        import { getAnalytics } from "firebase/analytics";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyCv6GxCCdbpBm8UJZF8sZ55luccVFqcEME",
+          authDomain: "aristo-a68dd.firebaseapp.com",
+          projectId: "aristo-a68dd",
+          storageBucket: "aristo-a68dd.firebasestorage.app",
+          messagingSenderId: "258587583138",
+          appId: "1:258587583138:web:ad0a5820fa486bd8c46dfb",
+          measurementId: "G-Y8WETJ8DMS"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Cipher and solution
+        const cipherText = "Gsv jfrxp yildm ulc qfnkh levi gsv ozab wlt!";
+        const correctAnswer = "The quick brown fox jumps over the lazy dog";
+
+        let userId = Math.floor(Math.random() * 1000);  // Unique user ID for multiplayer
+
+        // Start the competition by showing the cipher and input fields
         function startCompetition() {
-            // Redirect to the cipher competition page
-            window.location.href = "competition.html";
+            document.getElementById("start-section").style.display = "none";
+            document.getElementById("cipher-section").style.display = "block";
+            document.getElementById("input-section").style.display = "block";
+            document.getElementById("answer-section").style.display = "block";
+            document.getElementById("cipher-text").textContent = cipherText;
+
+            createInputFields();
         }
+
+        // Create input fields for each letter in the cipher text
+        function createInputFields() {
+            let inputFieldsDiv = document.getElementById("input-fields");
+            let letterCounts = {};
+
+            // Count letter occurrences in cipher text
+            for (let letter of cipherText) {
+                if (letter.match(/[a-zA-Z]/)) {
+                    letter = letter.toLowerCase();
+                    letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+                }
+            }
+
+            // Create textboxes for each letter in the cipher
+            for (let letter of cipherText) {
+                if (letter.match(/[a-zA-Z]/)) {
+                    let letterContainer = document.createElement('div');
+                    letterContainer.classList.add('input-letter-container');
+
+                    let letterElement = document.createElement('div');
+                    letterElement.textContent = letter.toUpperCase();
+                    letterContainer.appendChild(letterElement);
+
+                    let inputBox = document.createElement('input');
+                    inputBox.setAttribute('maxlength', '1');
+                    inputBox.setAttribute('placeholder', '?');
+                    letterContainer.appendChild(inputBox);
+
+                    let letterCount = document.createElement('div');
+                    letterCount.textContent = `(${letterCounts[letter.toLowerCase()]})`;
+                    letterContainer.appendChild(letterCount);
+
+                    inputFieldsDiv.appendChild(letterContainer);
+                }
+            }
+        }
+
+        // Submit the player's answer and update the result
+        function submitAnswer() {
+            let userAnswer = '';
+            let inputs = document.querySelectorAll('#input-fields input');
+
+            inputs.forEach(input => {
+                userAnswer += input.value.toLowerCase();
+            });
+
+            if (userAnswer === correctAnswer.toLowerCase()) {
+                updateResults("Congratulations! You solved the cipher!", true);
+            } else {
+                updateResults("Incorrect answer. Try again!", false);
+            }
+        }
+
+        // Update the results in real-time and show the correct solution
+        function updateResults(message, solved) {
+            document.getElementById("result-section").style.display = "block";
+            document.getElementById("result-message").textContent = message;
+            document.getElementById("solution-message").textContent = `The correct answer was: ${correctAnswer}`;
+            document.getElementById("answer-section").style.display = "none";
+            document.getElementById("cipher-section").style.display = "none";
+
+            // Store the results in Firebase
+            const userResultRef = db.ref('results/' + userId);
+            userResultRef.set({
+                solved: solved,
+                time: new Date().toISOString(),
+            });
+        }
+
+        // Listen for multiplayer results updates (other players)
+        db.ref('results').on('value', function(snapshot) {
+            const results = snapshot.val();
+            if (results) {
+                // Handle other players' results here (you can display messages, etc.)
+                console.log(results);
+            }
+        });
     </script>
 </body>
 </html>
